@@ -1,0 +1,40 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100&display=swap');
+
+.homepage {
+  height: 100vh;
+  background-image: url('https://lh5.googleusercontent.com/proxy/YwCbygkcCsTb8jthAA9t6ZsPKyGltywwilheUZP1B7LvkqeOrtHqtu_qv0im0-g30Zpi3jwVQB2N-iOJ-NE-_Az5rkMkTXssM3l-BEwirwEI4JOtlVuVK4IA6DP6J0vFcQV8ZCVTZJ-UW1dP=s0-d');
+  background-size: cover;
+  font-family: 'Roboto', sans-serif;
+  line-height: 1.2;
+}
+
+.content{
+    
+    height: 80%;
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    padding: 3rem;
+}
+.legend {
+   
+    width: 90%;
+}
+.mainTitle {
+  color: white;
+  font-size: 3rem;
+  text-shadow: 0 0 2px #fff;
+  
+  
+}
+
+.pict {
+ 
+  width: 20%;
+}
+.stores {
+  width: 8rem;
+  
+}

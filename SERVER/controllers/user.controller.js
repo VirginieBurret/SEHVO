@@ -1,0 +1,121 @@
+const UserModel = require("../models/user.model");
+const ObjectID = require("mongoose").Types.ObjectId;
+
+module.exports.getAllUsers = async (req, res) => {
+  const users = await UserModel.find().select("-password");
+  res.status(200).json(users);
+};
+
+module.exports.userInfo = (req, res) => {
+  if (!ObjectID.isValid(req.params.id))
+    // si l id passé en aprametre de l url nest pas connu
+    return res.status(400).send("ID unknown : " + req.params.id);
+
+  UserModel.findById(req.params.id, (err, docs) => {
+    // docs correspond a la data
+    if (!err) res.send(docs);
+    else console.log("ID unknown : " + err);
+  }).select("-password");
+};
+
+module.exports.updateUser = async (req, res) => {
+  if (!ObjectID.isValid(req.params.id))
+    return res.status(400).send("ID unknown : " + req.params.id);
+
+  try {
+    await UserModel.findOneAndUpdate(
+      // tu trouve l element et tu le mets a jour
+      { _id: req.params.id }, // premier elmt a trouver c est l'id passé en request
+      {
+        $set: {
+          // ensuite qu est ce quon va modifier , pour modifier on utilise $set
+          bio: req.body.bio, // on va set la bio qui aura comme valeur req.body.bio quon passe en request
+        },
+      },
+      { new: true, upsert: true, setDefaultsOnInsert: true }, // parametres a mettre obligatoirement quand on fait un put
+      (err, docs) => {
+        if (!err) return res.send(docs);
+        if (err) return res.status(500).send({ message: err });
+      }
+    );
+  } catch (err) {
+    return res.status(500).json({ message: err });
+  }
+};
+
+module.exports.deleteUser = async (req, res) => {
+  if (!ObjectID.isValid(req.params.id))
+    return res.status(400).send("ID unknown : " + req.params.id);
+
+  try {
+    await UserModel.remove({ _id: req.params.id }).exec();
+    res.status(200).json({ message: "Successfully deleted. " });
+  } catch (err) {
+    return res.status(500).json({ message: err });
+  }
+};
+
+module.exports.follow = async (req, res) => {
+  if (
+    !ObjectID.isValid(req.params.id) ||
+    !ObjectID.isValid(req.body.idToFollow)
+  )
+    return res.status(400).send("ID unknown : " + req.params.id);
+
+  try {
+    // add to the follower list
+    await UserModel.findByIdAndUpdate(
+      req.params.id,
+      { $addToSet: { following: req.body.idToFollow } }, // add to set = rajoute a ce quil y a deja
+      { new: true, upsert: true },
+      (err, docs) => {
+        if (!err) res.status(201).json(docs);
+        else return res.status(400).jsos(err);
+      }
+    );
+    // add to following list
+    await UserModel.findByIdAndUpdate(
+      req.body.idToFollow,
+      { $addToSet: { followers: req.params.id } },
+      { new: true, upsert: true },
+      (err, docs) => {
+        // if (!err) res.status(201).json(docs);
+        if (err) return res.status(400).jsos(err);
+      }
+    );
+  } catch (err) {
+    return res.status(500).json({ message: err });
+  }
+};
+
+module.exports.unfollow = async (req, res) => {
+  if (
+    !ObjectID.isValid(req.params.id) ||
+    !ObjectID.isValid(req.body.idToUnfollow)
+  )
+    return res.status(400).send("ID unknown : " + req.params.id);
+
+  try {
+    await UserModel.findByIdAndUpdate(
+      req.params.id,
+      { $pull: { following: req.body.idToUnfollow } },
+      { new: true, upsert: true },
+      (err, docs) => {
+        if (!err) res.status(201).json(docs);
+        else return res.status(400).jsos(err);
+      }
+    );
+    // remove to following list
+    await UserModel.findByIdAndUpdate(
+      req.body.idToUnfollow,
+      { $pull: { followers: req.params.id } },
+      { new: true, upsert: true },
+      (err, docs) => {
+        // if (!err) res.status(201).json(docs);
+        if (err) return res.status(400).jsos(err);
+      }
+    );
+  } catch (err) {
+    return res.status(500).json({ message: err });
+  }
+};
